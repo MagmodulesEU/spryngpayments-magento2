@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<payment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Payment:etc/payment.xsd">
+    <methods>
+        <method name="spryng_methods_creditcard">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="spryng_methods_ideal">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="spryng_methods_paypal">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="spryng_methods_sepa">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="spryng_methods_sofort">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="spryng_methods_klarna">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="spryng_methods_bancontact">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+    </methods>
+</payment>
