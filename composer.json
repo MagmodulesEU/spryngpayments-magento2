@@ -1,5 +1,5 @@
 {
-  "name": "spryng/magento2-extension",
+  "name": "spryngpayments/magento2-extension",
   "description": "Spryng Payment Module for Magento 2",
   "minimum-stability": "dev",
   "version": "0.9.5",
