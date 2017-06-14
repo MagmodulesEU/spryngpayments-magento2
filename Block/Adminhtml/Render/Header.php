@@ -3,6 +3,7 @@
  * Copyright © 2017 Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
+
 namespace Spryng\Payment\Block\Adminhtml\Render;
 
 use Magento\Config\Block\System\Config\Form\Field;
@@ -17,7 +18,8 @@ class Header extends Field
 
     /**
      * Header constructor.
-     * @param Context $context
+     *
+     * @param Context       $context
      * @param GeneralHelper $general
      */
     public function __construct(

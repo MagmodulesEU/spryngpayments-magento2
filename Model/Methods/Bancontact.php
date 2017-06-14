@@ -15,7 +15,7 @@ class Bancontact extends Spryng
     protected $_canRefund = false;
 
     /**
-     * @param $order
+     * @param \Magento\Sales\Model\Order $order
      *
      * @return array
      */
@@ -23,7 +23,6 @@ class Bancontact extends Spryng
     {
         $cardToken = null;
         $storeId = $order->getStoreId();
-        $orderId = $order->getId();
         $incrementId = $order->getIncrementId();
         $apiKey = $this->spryngHelper->getApiKey($storeId);
         $accountId = $this->spryngHelper->getAccount($this->_code, $storeId);
@@ -33,16 +32,17 @@ class Bancontact extends Spryng
         }
 
         $paymentData = [
-            'account'            => $accountId,
-            'amount'             => ($order->getBaseGrandTotal() * 100),
-            'card'               => $cardToken,
-            'payment_product'    => 'bancontact',
-            'dynamic_descriptor' => $this->spryngHelper->getDynamicDescriptor($incrementId, $storeId),
-            'customer_ip'        => $order->getRemoteIp(),
-            'user_agent'         => $this->spryngHelper->getUserAgent(),
-            'merchant_reference' => $this->spryngHelper->getMerchantReference($storeId),
-            'details'            => [
-                'redirect_url' => $this->spryngHelper->getReturnUrl($orderId)
+            'account'                    => $accountId,
+            'amount'                     => ($order->getBaseGrandTotal() * 100),
+            'card'                       => $cardToken,
+            'payment_product'            => 'bancontact',
+            'dynamic_descriptor'         => $this->spryngHelper->getDynamicDescriptor($incrementId, $storeId),
+            'customer_ip'                => $order->getRemoteIp(),
+            'user_agent'                 => $this->spryngHelper->getUserAgent(),
+            'merchant_reference'         => $this->spryngHelper->getMerchantReference($storeId),
+            'webhook_transaction_update' => $this->spryngHelper->getWebhookUrl(),
+            'details'                    => [
+                'redirect_url' => $this->spryngHelper->getReturnUrl()
             ]
         ];
 
@@ -73,9 +73,9 @@ class Bancontact extends Spryng
         if (is_array($data)) {
             $this->getInfoInstance()->setAdditionalInformation('card_token', $data['card_token']);
         } elseif ($data instanceof \Magento\Framework\DataObject) {
-            $additional_data = $data->getAdditionalData();
-            if (isset($additional_data['card_token'])) {
-                $cardToken = $additional_data['card_token'];
+            $additionalData = $data->getAdditionalData();
+            if (isset($additionalData['card_token'])) {
+                $cardToken = $additionalData['card_token'];
                 $this->getInfoInstance()->setAdditionalInformation('card_token', $cardToken);
             }
         }

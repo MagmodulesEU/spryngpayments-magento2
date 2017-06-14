@@ -49,7 +49,9 @@ class InstallData implements InstallDataInterface
          * Add 'spryng_transaction_id' attributes for order
          */
 
-        /** @var \Magento\Sales\Setup\SalesSetup $salesSetup */
+        /**
+         * @var \Magento\Sales\Setup\SalesSetup $salesSetup
+         */
         $salesSetup = $this->salesSetupFactory->create(['setup' => $setup]);
         $options = ['type' => 'varchar', 'visible' => false, 'required' => false];
         $salesSetup->addAttribute('order', 'spryng_transaction_id', $options);
@@ -58,33 +60,43 @@ class InstallData implements InstallDataInterface
          * Add 'spryng_customer_id' attributes for customer
          */
 
-        /** @var \Magento\Customer\Setup\CustomerSetup $customerSetup */
+        /**
+         * @var \Magento\Customer\Setup\CustomerSetup $customerSetup
+         */
         $customerSetup = $this->customerSetupFactory->create(['setup' => $setup]);
         $customerEntity = $customerSetup->getEavConfig()->getEntityType('customer');
         $attributeSetId = $customerEntity->getDefaultAttributeSetId();
 
-        /** @var $attributeSet AttributeSet */
+        /**
+         * @var $attributeSet AttributeSet
+         */
         $attributeSet = $this->attributeSetFactory->create();
         $attributeGroupId = $attributeSet->getDefaultGroupId($attributeSetId);
 
-        $customerSetup->addAttribute(Customer::ENTITY, 'spryng_customer_id', [
-            'type'         => 'varchar',
-            'label'        => 'Spryng Customer ID',
-            'input'        => 'text',
-            'required'     => false,
-            'visible'      => false,
-            'user_defined' => true,
-            'sort_order'   => 1000,
-            'position'     => 1000,
-            'system'       => 0,
-        ]);
+        $customerSetup->addAttribute(
+            Customer::ENTITY,
+            'spryng_customer_id',
+            [
+                'type'         => 'varchar',
+                'label'        => 'Spryng Customer ID',
+                'input'        => 'text',
+                'required'     => false,
+                'visible'      => false,
+                'user_defined' => true,
+                'sort_order'   => 1000,
+                'position'     => 1000,
+                'system'       => 0,
+            ]
+        );
 
         $attribute = $customerSetup->getEavConfig()->getAttribute(Customer::ENTITY, 'spryng_customer_id')
-            ->addData([
-                'attribute_set_id'   => $attributeSetId,
-                'attribute_group_id' => $attributeGroupId,
-                'used_in_forms'      => ['adminhtml_customer'],
-            ]);
+            ->addData(
+                [
+                    'attribute_set_id'   => $attributeSetId,
+                    'attribute_group_id' => $attributeGroupId,
+                    'used_in_forms'      => ['adminhtml_customer'],
+                ]
+            );
 
         $attribute->save();
     }

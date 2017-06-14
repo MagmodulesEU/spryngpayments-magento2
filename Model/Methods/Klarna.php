@@ -18,7 +18,7 @@ class Klarna extends Spryng
     protected $_canRefund = false;
 
     /**
-     * @param $order
+     * @param \Magento\Sales\Model\Order $order
      *
      * @return array
      */
@@ -28,7 +28,6 @@ class Klarna extends Spryng
         $pclass = null;
         $dateOfBirth = null;
         $storeId = $order->getStoreId();
-        $orderId = $order->getId();
         $incrementId = $order->getIncrementId();
         $additionalData = $order->getPayment()->getAdditionalInformation();
 
@@ -52,15 +51,16 @@ class Klarna extends Spryng
         }
 
         $paymentData = [
-            'account'            => $accountId,
-            'customer'           => $customer->_id,
-            'amount'             => ($order->getBaseGrandTotal() * 100),
-            'customer_ip'        => $order->getRemoteIp(),
-            'user_agent'         => $this->spryngHelper->getUserAgent(),
-            'dynamic_descriptor' => $this->spryngHelper->getDynamicDescriptor($incrementId, $storeId),
-            'merchant_reference' => $this->spryngHelper->getMerchantReference($storeId),
-            'details'            => [
-                'redirect_url' => $this->spryngHelper->getReturnUrl($orderId),
+            'account'                    => $accountId,
+            'customer'                   => $customer->_id,
+            'amount'                     => ($order->getBaseGrandTotal() * 100),
+            'customer_ip'                => $order->getRemoteIp(),
+            'user_agent'                 => $this->spryngHelper->getUserAgent(),
+            'dynamic_descriptor'         => $this->spryngHelper->getDynamicDescriptor($incrementId, $storeId),
+            'merchant_reference'         => $this->spryngHelper->getMerchantReference($storeId),
+            'webhook_transaction_update' => $this->spryngHelper->getWebhookUrl(),
+            'details'                    => [
+                'redirect_url' => $this->spryngHelper->getReturnUrl(),
                 'pclass'       => $pclass,
                 'goods_list'   => $this->generateOrderListForOrder($order),
             ]
@@ -77,7 +77,7 @@ class Klarna extends Spryng
     }
 
     /**
-     * @param $order
+     * @param \Magento\Sales\Model\Order $order
      *
      * @return \SpryngPaymentsApiPhp\Object\GoodsList
      */
@@ -146,18 +146,18 @@ class Klarna extends Spryng
             $this->getInfoInstance()->setAdditionalInformation('pclass', $data['selected_payment_class']);
             $this->getInfoInstance()->setAdditionalInformation('dob', $data['dob']);
         } elseif ($data instanceof \Magento\Framework\DataObject) {
-            $additional_data = $data->getAdditionalData();
-            if (isset($additional_data['selected_prefix'])) {
-                $this->getInfoInstance()->setAdditionalInformation('prefix', $additional_data['selected_prefix']);
+            $additionalData = $data->getAdditionalData();
+            if (isset($additionalData['selected_prefix'])) {
+                $this->getInfoInstance()->setAdditionalInformation('prefix', $additionalData['selected_prefix']);
             }
-            if (isset($additional_data['selected_payment_class'])) {
+            if (isset($additionalData['selected_payment_class'])) {
                 $this->getInfoInstance()->setAdditionalInformation(
                     'pclass',
-                    $additional_data['selected_payment_class']
+                    $additionalData['selected_payment_class']
                 );
             }
-            if (isset($additional_data['dob'])) {
-                $this->getInfoInstance()->setAdditionalInformation('dob', $additional_data['dob']);
+            if (isset($additionalData['dob'])) {
+                $this->getInfoInstance()->setAdditionalInformation('dob', $additionalData['dob']);
             }
         }
         return $this;

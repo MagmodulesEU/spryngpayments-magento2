@@ -56,7 +56,7 @@
                            showInWebsite="1" showInStore="1">
                         <label>Settings</label>
                         <frontend_model>Spryng\Payment\Block\Adminhtml\Render\Heading</frontend_model>
-                        <comment><![CDATA[Configure the general Spryng Payment Payment status and Payment Icons.]]></comment>
+                        <comment><![CDATA[Configure the general Spryng Payment Payment settings.]]></comment>
                     </field>
                     <field id="order_status_pending" translate="label comment" type="select" sortOrder="22"
                            showInDefault="1" showInWebsite="1" showInStore="1">

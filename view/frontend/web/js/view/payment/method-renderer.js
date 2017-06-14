@@ -26,9 +26,12 @@ define(
             {type: 'spryng_methods_klarna', component: klarnaComponent}
 
         ];
-        $.each(methods, function (k, method) {
-            rendererList.push(method);
-        });
+        $.each(
+            methods,
+            function (k, method) {
+                rendererList.push(method);
+            }
+        );
         return Component.extend({});
     }
 );

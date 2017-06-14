@@ -19,6 +19,7 @@ class Organisation implements ArrayInterface
     /**
      * Organisation constructor.
      *
+     * @param Http        $request
      * @param SpryngModel $spryngModel
      */
     public function __construct(
@@ -37,11 +38,17 @@ class Organisation implements ArrayInterface
         $optionArray = [];
         $storeId = (int)$this->request->getParam('store', 0);
         $websiteId = (int)$this->request->getParam('website', 0);
-
         $organisation = $this->spryngModel->getOrganisations($storeId, $websiteId);
+
+        if (isset($organisation['-1'])) {
+            return ['value' => '', 'label' => $organisation['-1']];
+        }
+
+        $optionArray[] = ['value' => '', 'label' => __('--Please Select--')];
         foreach ($organisation as $value => $label) {
             $optionArray[] = ['value' => $value, 'label' => $label];
         }
+
         return $optionArray;
     }
 }

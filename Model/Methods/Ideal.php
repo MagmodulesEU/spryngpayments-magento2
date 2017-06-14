@@ -16,7 +16,7 @@ class Ideal extends Spryng
     protected $_canRefund = false;
 
     /**
-     * @param $order
+     * @param \Magento\Sales\Model\Order $order
      *
      * @return array
      */
@@ -24,7 +24,6 @@ class Ideal extends Spryng
     {
         $issuer = null;
         $storeId = $order->getStoreId();
-        $orderId = $order->getId();
         $incrementId = $order->getIncrementId();
         $apiKey = $this->spryngHelper->getApiKey($storeId);
         $accountId = $this->spryngHelper->getAccount($this->_code, $storeId);
@@ -34,15 +33,16 @@ class Ideal extends Spryng
         }
 
         $paymentData = [
-            'account'            => $accountId,
-            'amount'             => ($order->getBaseGrandTotal() * 100),
-            'customer_ip'        => $order->getRemoteIp(),
-            'dynamic_descriptor' => $this->spryngHelper->getDynamicDescriptor($incrementId, $storeId),
-            'user_agent'         => $this->spryngHelper->getUserAgent(),
-            'merchant_reference' => $this->spryngHelper->getMerchantReference($storeId),
-            'details'            => [
+            'account'                    => $accountId,
+            'amount'                     => ($order->getBaseGrandTotal() * 100),
+            'customer_ip'                => $order->getRemoteIp(),
+            'dynamic_descriptor'         => $this->spryngHelper->getDynamicDescriptor($incrementId, $storeId),
+            'user_agent'                 => $this->spryngHelper->getUserAgent(),
+            'merchant_reference'         => $this->spryngHelper->getMerchantReference($storeId),
+            'webhook_transaction_update' => $this->spryngHelper->getWebhookUrl(),
+            'details' => [
                 'issuer'       => $issuer,
-                'redirect_url' => $this->spryngHelper->getReturnUrl($orderId)
+                'redirect_url' => $this->spryngHelper->getReturnUrl()
             ]
         ];
 
@@ -86,9 +86,9 @@ class Ideal extends Spryng
         if (is_array($data)) {
             $this->getInfoInstance()->setAdditionalInformation('issuer', $data['selected_issuer']);
         } elseif ($data instanceof \Magento\Framework\DataObject) {
-            $additional_data = $data->getAdditionalData();
-            if (isset($additional_data['selected_issuer'])) {
-                $selectedIssuer = $additional_data['selected_issuer'];
+            $additionalData = $data->getAdditionalData();
+            if (isset($additionalData['selected_issuer'])) {
+                $selectedIssuer = $additionalData['selected_issuer'];
                 $this->getInfoInstance()->setAdditionalInformation('issuer', $selectedIssuer);
             }
         }

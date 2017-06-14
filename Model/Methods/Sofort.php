@@ -16,30 +16,30 @@ class Sofort extends Spryng
     protected $_canRefund = false;
 
     /**
-     * @param $order
+     * @param \Magento\Sales\Model\Order $order
      *
      * @return array
      */
     public function startTransaction($order)
     {
         $storeId = $order->getStoreId();
-        $orderId = $order->getId();
         $incrementId = $order->getIncrementId();
         $apiKey = $this->spryngHelper->getApiKey($storeId);
         $accountId = $this->spryngHelper->getAccount($this->_code, $storeId);
         $countryId = $order->getBillingAddress()->getCountryId();
 
         $paymentData = [
-            'account'            => $accountId,
-            'amount'             => ($order->getBaseGrandTotal() * 100),
-            'customer_ip'        => $order->getRemoteIp(),
-            'dynamic_descriptor' => $this->spryngHelper->getDynamicDescriptor($incrementId, $storeId),
-            'user_agent'         => $this->spryngHelper->getUserAgent(),
-            'country_code'       => $countryId,
-            'merchant_reference' => $this->spryngHelper->getMerchantReference($storeId),
-            'details'            => [
+            'account'                    => $accountId,
+            'amount'                     => ($order->getBaseGrandTotal() * 100),
+            'customer_ip'                => $order->getRemoteIp(),
+            'dynamic_descriptor'         => $this->spryngHelper->getDynamicDescriptor($incrementId, $storeId),
+            'user_agent'                 => $this->spryngHelper->getUserAgent(),
+            'country_code'               => $countryId,
+            'merchant_reference'         => $this->spryngHelper->getMerchantReference($storeId),
+            'webhook_transaction_update' => $this->spryngHelper->getWebhookUrl(),
+            'details' => [
                 'project_id'   => $this->spryngHelper->getProjectId($this->_code, $storeId),
-                'redirect_url' => $this->spryngHelper->getReturnUrl($orderId)
+                'redirect_url' => $this->spryngHelper->getReturnUrl()
             ]
         ];
 

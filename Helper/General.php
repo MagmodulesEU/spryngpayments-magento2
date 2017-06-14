@@ -17,10 +17,8 @@ class General extends AbstractHelper
 {
 
     const MODULE_CODE = 'Spryng_Payment';
-
     const API_ENDPOINT = 'https://api.spryngpayments.com/v1/';
     const API_ENDPOINT_SANDBOX = 'https://sandbox.spryngpayments.com/v1/';
-
     const XML_PATH_MODULE_ACTIVE = 'payment/spryng_general/enabled';
     const XML_PATH_API_MODUS = 'payment/spryng_general/type';
     const XML_PATH_LIVE_APIKEY = 'payment/spryng_general/apikey_live';
@@ -105,21 +103,6 @@ class General extends AbstractHelper
     }
 
     /**
-     * @param $storeId
-     * @param $type
-     *
-     * @return string
-     */
-    public function getApiEndpoint($storeId, $type)
-    {
-        if ($this->isSandbox($storeId)) {
-            return self::API_ENDPOINT_SANDBOX . $type;
-        } else {
-            return self::API_ENDPOINT . $type;
-        }
-    }
-
-    /**
      * @param     $storeId
      * @param int $websiteId
      *
@@ -133,6 +116,21 @@ class General extends AbstractHelper
         }
 
         return false;
+    }
+
+    /**
+     * @param $storeId
+     * @param $type
+     *
+     * @return string
+     */
+    public function getApiEndpoint($storeId, $type)
+    {
+        if ($this->isSandbox($storeId)) {
+            return self::API_ENDPOINT_SANDBOX . $type;
+        } else {
+            return self::API_ENDPOINT . $type;
+        }
     }
 
     /**
@@ -237,14 +235,20 @@ class General extends AbstractHelper
     }
 
     /**
-     * @param $orderId
-     *
      * @return mixed|string
      */
-    public function getReturnUrl($orderId)
+    public function getReturnUrl()
     {
-        $urlParams = '?order_id=' . intval($orderId) . '&utm_nooverride=1';
-        $url = $this->urlBuilder->getUrl('spryng/checkout/success/') . $urlParams;
+        $url = $this->urlBuilder->getUrl('spryng/checkout/success/', ['_secure' => true]);
+        return strpos($url, 'https') !== false ? $url : str_replace('http', 'https', $url);
+    }
+
+    /**
+     * @return mixed|string
+     */
+    public function getWebhookUrl()
+    {
+        $url = $this->urlBuilder->getUrl('spryng/checkout/webhook/', ['_secure' => true]);
         return strpos($url, 'https') !== false ? $url : str_replace('http', 'https', $url);
     }
 

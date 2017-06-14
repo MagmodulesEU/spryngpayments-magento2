@@ -19,29 +19,27 @@
             <!-- ko template: getTemplate() --><!-- /ko -->
             <!--/ko-->
         </div>
-        
+
 		<label class="label">
 			<span><!-- ko i18n: 'Title'--><!-- /ko --></span>
 		</label>
         <div class="field-select-billing">
-            <select data-bind="options: getCustomerPrefixes(), optionsText: 'name', optionsValue: 'id', value: selectedPrefix"></select>
+            <select data-bind="options: getCustomerPrefixes(), optionsText: 'name', optionsValue: 'id', value: selectedPrefix" style="width: 250px"></select>
         </div>
 
 		<label class="label">
 			<span><!-- ko i18n: 'Payment Plan'--><!-- /ko --></span>
 		</label>
         <div class="field-select-billing">
-            <select data-bind="options: getPaymentClasses(), optionsText: 'name', optionsValue: 'id', value: selectedPaymentClass"></select>
+            <select data-bind="options: getPaymentClasses(), optionsText: 'name', optionsValue: 'id', value: selectedPaymentClass" style="width: 250px"></select>
         </div>
 
 		<label data-bind="attr: {for: getCode() + '_dob'}" class="label">
 			<span><!-- ko i18n: 'Date of Birth'--><!-- /ko --></span>
 		</label>
 		<div class="control">
-			<input type="text" name="payment[dob]" class="input-text" value="" data-bind="attr: {'id': getCode() + '_dob'}" />
-			<small>eg. YYYY-MM-DD</small>
-			<br/>
-		</div>
+            <input type="text" name="payment[dob]" class="input-text" style="width: 250px" placeholder="YYYY-MM-DD" data-bind="attr: {'id': getCode() + '_dob'}, datepicker: { storage: getDob(), options: { changeMonth: true, changeYear: true, showButtonPanel: true, dateFormat: 'yy-MM-dd', yearRange: '-120y:c+nn', buttonText: 'Select Date'} }">
+        </div>
 
         <div class="checkout-agreements-block">
             <!-- ko foreach: $parent.getRegion('before-place-order') -->

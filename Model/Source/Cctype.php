@@ -2,7 +2,6 @@
 /**
  * Copyright © 2017 Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
- *
  */
 
 namespace Spryng\Payment\Model\Source;

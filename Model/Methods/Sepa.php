@@ -15,15 +15,13 @@ class Sepa extends Spryng
     protected $_canRefund = false;
 
     /**
-     * @param $order
+     * @param \Magento\Sales\Model\Order $order
      *
      * @return array
      */
     public function startTransaction($order)
     {
-        $prefix = null;
         $storeId = $order->getStoreId();
-        $orderId = $order->getId();
         $incrementId = $order->getIncrementId();
         $additionalData = $order->getPayment()->getAdditionalInformation();
         $prefix = null;
@@ -41,15 +39,16 @@ class Sepa extends Spryng
         }
 
         $paymentData = [
-            'account'            => $accountId,
-            'customer'           => $customer->_id,
-            'amount'             => ($order->getBaseGrandTotal() * 100),
-            'customer_ip'        => $order->getRemoteIp(),
-            'user_agent'         => $this->spryngHelper->getUserAgent(),
-            'dynamic_descriptor' => $this->spryngHelper->getDynamicDescriptor($incrementId, $storeId),
-            'merchant_reference' => $this->spryngHelper->getMerchantReference($storeId),
-            'details'            => [
-                'redirect_url' => $this->spryngHelper->getReturnUrl($orderId)
+            'account'                    => $accountId,
+            'customer'                   => $customer->_id,
+            'amount'                     => ($order->getBaseGrandTotal() * 100),
+            'customer_ip'                => $order->getRemoteIp(),
+            'user_agent'                 => $this->spryngHelper->getUserAgent(),
+            'dynamic_descriptor'         => $this->spryngHelper->getDynamicDescriptor($incrementId, $storeId),
+            'merchant_reference'         => $this->spryngHelper->getMerchantReference($storeId),
+            'webhook_transaction_update' => $this->spryngHelper->getWebhookUrl(),
+            'details'                    => [
+                'redirect_url' => $this->spryngHelper->getReturnUrl()
             ]
         ];
 
@@ -84,9 +83,9 @@ class Sepa extends Spryng
         if (is_array($data)) {
             $this->getInfoInstance()->setAdditionalInformation('prefix', $data['selected_prefix']);
         } elseif ($data instanceof \Magento\Framework\DataObject) {
-            $additional_data = $data->getAdditionalData();
-            if (isset($additional_data['selected_prefix'])) {
-                $selectedPrefix = $additional_data['selected_prefix'];
+            $additionalData = $data->getAdditionalData();
+            if (isset($additionalData['selected_prefix'])) {
+                $selectedPrefix = $additionalData['selected_prefix'];
                 $this->getInfoInstance()->setAdditionalInformation('prefix', $selectedPrefix);
             }
         }

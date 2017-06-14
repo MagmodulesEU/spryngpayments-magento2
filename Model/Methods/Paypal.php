@@ -15,27 +15,27 @@ class Paypal extends Spryng
     protected $_canRefund = false;
 
     /**
-     * @param $order
+     * @param \Magento\Sales\Model\Order $order
      *
      * @return array
      */
     public function startTransaction($order)
     {
         $storeId = $order->getStoreId();
-        $orderId = $order->getId();
         $incrementId = $order->getIncrementId();
         $apiKey = $this->spryngHelper->getApiKey($storeId);
         $accountId = $this->spryngHelper->getAccount($this->_code, $storeId);
 
         $paymentData = [
-            'account'            => $accountId,
-            'amount'             => ($order->getBaseGrandTotal() * 100),
-            'customer_ip'        => $order->getRemoteIp(),
-            'dynamic_descriptor' => $this->spryngHelper->getDynamicDescriptor($incrementId, $storeId),
-            'user_agent'         => $this->spryngHelper->getUserAgent(),
-            'merchant_reference' => $this->spryngHelper->getMerchantReference($storeId),
-            'details'            => [
-                'redirect_url' => $this->spryngHelper->getReturnUrl($orderId),
+            'account'                    => $accountId,
+            'amount'                     => ($order->getBaseGrandTotal() * 100),
+            'customer_ip'                => $order->getRemoteIp(),
+            'dynamic_descriptor'         => $this->spryngHelper->getDynamicDescriptor($incrementId, $storeId),
+            'user_agent'                 => $this->spryngHelper->getUserAgent(),
+            'merchant_reference'         => $this->spryngHelper->getMerchantReference($storeId),
+            'webhook_transaction_update' => $this->spryngHelper->getWebhookUrl(),
+            'details'                    => [
+                'redirect_url' => $this->spryngHelper->getReturnUrl(),
                 'capture_now'  => true
             ]
         ];

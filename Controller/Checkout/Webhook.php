@@ -51,7 +51,6 @@ class Webhook extends Action
         $this->spryngHelper = $spryngHelper;
         $this->storeManager = $storeManager;
         $this->order = $order;
-
         parent::__construct($context);
     }
 
@@ -64,17 +63,17 @@ class Webhook extends Action
         $this->spryngHelper->addTolog('webhook', $payload);
         $json = json_decode($payload);
 
-        if ($json->type == 'transaction') {
+        if ($json && $json->type == 'transaction') {
             $orderId = $this->spryngModel->getOrderIdByTransactionId($json->_id);
             if (!$orderId) {
-                $msg = ['error' => true, 'msg' => __('Order %1 not found', $orderId)];
+                $msg = ['error' => true, 'msg' => __('Order not found for transaction id: %1', $json->_id)];
                 $this->spryngHelper->addTolog('error', $msg);
                 return;
             }
             $this->spryngModel->processTransaction($orderId, 'webhook');
         }
 
-        if ($json->type == 'refund') {
+        if ($json && $json->type == 'refund') {
             $storeId = $this->getRequest()->getParams('store_id');
             if (empty($storeId)) {
                 $storeId = $this->storeManager->getStore()->getId();

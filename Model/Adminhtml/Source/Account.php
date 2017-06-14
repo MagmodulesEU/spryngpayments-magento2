@@ -19,6 +19,7 @@ class Account implements ArrayInterface
     /**
      * Account constructor.
      *
+     * @param Http        $request
      * @param SpryngModel $spryngModel
      */
     public function __construct(
@@ -37,11 +38,16 @@ class Account implements ArrayInterface
         $optionArray = [];
         $storeId = (int)$this->request->getParam('store', 0);
         $websiteId = (int)$this->request->getParam('website', 0);
-
         $accounts = $this->spryngModel->getAccounts($storeId, $websiteId);
+
+        if (isset($accounts['-1'])) {
+            return ['value' => '', 'label' => $accounts['-1']];
+        }
+
+        $optionArray[] = ['value' => '', 'label' => __('--Please Select--')];
         foreach ($accounts as $value => $label) {
             $optionArray[] = ['value' => $value, 'label' => $label];
         }
-        return $accounts;
+        return $optionArray;
     }
 }

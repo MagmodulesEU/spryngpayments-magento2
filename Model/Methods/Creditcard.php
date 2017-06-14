@@ -14,6 +14,11 @@ class Creditcard extends Spryng
     protected $_code = 'spryng_methods_creditcard';
     protected $_canRefund = true;
 
+    /**
+     * @param \Magento\Sales\Model\Order $order
+     *
+     * @return array
+     */
     public function startTransaction($order)
     {
         $cardToken = null;
@@ -44,8 +49,8 @@ class Creditcard extends Spryng
         $this->spryngHelper->addTolog('creditcard', $transaction);
         $transactionId = $transaction->_id;
         $order->setSpryngTransactionId($transactionId)->save();
-        
-        $approvalUrl = $this->spryngHelper->getReturnUrl($order->getId());
+
+        $approvalUrl = $this->spryngHelper->getReturnUrl();
         return ['success' => true, 'approval_url' => $approvalUrl];
     }
 
@@ -94,9 +99,9 @@ class Creditcard extends Spryng
         if (is_array($data)) {
             $this->getInfoInstance()->setAdditionalInformation('card_token', $data['card_token']);
         } elseif ($data instanceof \Magento\Framework\DataObject) {
-            $additional_data = $data->getAdditionalData();
-            if (isset($additional_data['card_token'])) {
-                $cardToken = $additional_data['card_token'];
+            $additionalData = $data->getAdditionalData();
+            if (isset($additionalData['card_token'])) {
+                $cardToken = $additionalData['card_token'];
                 $this->getInfoInstance()->setAdditionalInformation('card_token', $cardToken);
             }
         }

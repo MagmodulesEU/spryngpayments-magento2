@@ -219,13 +219,14 @@ class Spryng extends AbstractMethod
         $spryngApi = $this->loadSpryngApi($apiKey, $storeId);
         $transaction = $spryngApi->transaction->getTransactionById($transactionId);
         $this->spryngHelper->addTolog($type, $transaction);
+        $statusPending = $this->spryngHelper->getStatusPending($storeId);
 
         switch ($transaction->status) {
             case 'SETTLEMENT_COMPLETED':
                 $amount = $order->getBaseGrandTotal();
                 $payment = $order->getPayment();
 
-                if (!$payment->getIsTransactionClosed()) {
+                if (!$payment->getIsTransactionClosed() && $type == 'webhook') {
                     $payment->setTransactionId($transactionId);
                     $payment->setCurrencyCode('EUR');
                     $payment->setIsTransactionClosed(true);
@@ -233,52 +234,56 @@ class Spryng extends AbstractMethod
                     $order->save();
 
                     $invoice = $payment->getCreatedInvoice();
-                    $status = $this->spryngHelper->getStatusProcessing($storeId);
+                    $statusProcessing = $this->spryngHelper->getStatusProcessing($storeId);
                     $sendInvoice = $this->spryngHelper->sendInvoice($storeId);
 
-                    if ($invoice && !$order->getEmailSent()) {
+                    if (!$order->getEmailSent()) {
                         $this->orderSender->send($order);
-                        $message = __('New order email sent');
-                        $order->addStatusToHistory($status, $message, true)->save();
                     }
                     if ($invoice && $sendInvoice && !$invoice->getEmailSent()) {
                         $this->invoiceSender->send($invoice);
-                        $message = __('Notified customer about invoice #%1', $invoice->getIncrementId());
-                        $order->addStatusToHistory($status, $message, true)->save();
                     }
-
-                    $msg = [
-                        'success'  => true,
-                        'status'   => $transaction->status,
-                        'order_id' => $orderId,
-                        'type'     => $type
-                    ];
-                    $this->spryngHelper->addTolog('success', $msg);
+                    if ($invoice && ($order->getStatus() != $statusProcessing)) {
+                        $order->setStatus($statusProcessing)->save();
+                    }
                 }
+
+                $msg = [
+                    'success'  => true,
+                    'status'   => $transaction->status,
+                    'order_id' => $orderId,
+                    'type'     => $type
+                ];
 
                 break;
 
             case 'SETTLEMENT_REQUESTED':
-                $status = $this->spryngHelper->getStatusPending($storeId);
-                if ($status != $order->getStatus()) {
+                if ($type == 'webhook') {
                     $message = __(
                         'Transaction with ID %1 is requested. Your order with ID %2 should be updated 
                         automatically when the status on the payment is updated.',
                         $transactionId,
                         $order->getIncrementId()
                     );
-                    $status = $this->spryngHelper->getStatusPending($storeId);
-                    $order->addStatusToHistory($status, $message, false)->save();
+
+                    if ($statusPending != $order->getStatus()) {
+                        $statusPending = $order->getStatus();
+                    }
+
+                    $order->addStatusToHistory($statusPending, $message, false)->save();
                 }
 
-                $msg = ['success' => true, 'status' => $transaction->status, 'order_id' => $orderId, 'type' => $type];
-                $this->spryngHelper->addTolog('success', $msg);
+                $msg = [
+                    'success'  => true,
+                    'status'   => $transaction->status,
+                    'order_id' => $orderId,
+                    'type'     => $type
+                ];
 
                 break;
 
             case 'INITIATED':
-                $status = $this->spryngHelper->getStatusPending($storeId);
-                if ($status != $order->getStatus()) {
+                if ($type == 'webhook') {
                     $message = __(
                         'Transaction with ID %1 has started. Your iDEAL approval URL is %2. Your order with ID %3 will 
                         be updated automatically when you have paid.',
@@ -286,42 +291,57 @@ class Spryng extends AbstractMethod
                         $transaction->details->approval_url,
                         $order->getIncrementId()
                     );
-                    $status = $this->spryngHelper->getStatusPending($storeId);
-                    $order->addStatusToHistory($status, $message, false)->save();
+
+                    if ($statusPending != $order->getStatus()) {
+                        $statusPending = $order->getStatus();
+                    }
+
+                    $order->addStatusToHistory($statusPending, $message, false)->save();
                 }
 
-                $msg = ['success' => true, 'status' => $transaction->status, 'order_id' => $orderId, 'type' => $type];
-                $this->spryngHelper->addTolog('success', $msg);
+                $msg = [
+                    'success'  => true,
+                    'status'   => $transaction->status,
+                    'order_id' => $orderId,
+                    'type'     => $type
+                ];
 
                 break;
 
             case 'SETTLEMENT_PROCESSED':
-                $status = $this->spryngHelper->getStatusPending($storeId);
-                if ($status != $order->getStatus()) {
+                if ($type == 'webhook') {
                     $message = __(
                         'Transaction with ID %1 is processed. Your order with ID %2 should be updated automatically 
                         when the status on the payment is updated.',
                         $transactionId,
                         $order->getIncrementId()
                     );
-                    $status = $this->spryngHelper->getStatusPending($storeId);
-                    $order->addStatusToHistory($status, $message, false)->save();
+                    if ($statusPending != $order->getStatus()) {
+                        $statusPending = $order->getStatus();
+                    }
+
+                    $order->addStatusToHistory($statusPending, $message, false)->save();
                 }
 
                 if (!$order->getEmailSent()) {
                     $this->orderSender->send($order);
-                    $message = __('New order email sent');
-                    $order->addStatusToHistory($status, $message, true)->save();
                 }
 
-                $msg = ['success' => true, 'status' => $transaction->status, 'order_id' => $orderId, 'type' => $type];
-                $this->spryngHelper->addTolog('success', $msg);
+                $msg = [
+                    'success'  => true,
+                    'status'   => $transaction->status,
+                    'order_id' => $orderId,
+                    'type'     => $type
+                ];
 
                 break;
 
             case 'FAILED':
             case 'AUTHORIZATION_VOIDED':
-                $this->cancelOrder($order);
+                if ($type == 'webhook') {
+                    $this->cancelOrder($order);
+                }
+
                 $msg = [
                     'success'  => false,
                     'status'   => 'cancel',
@@ -329,26 +349,36 @@ class Spryng extends AbstractMethod
                     'type'     => $type,
                     'msg'      => __('Payment was cancelled, please try again')
                 ];
-                $this->spryngHelper->addTolog('success', $msg);
+
                 break;
 
             default:
-                $status = $this->spryngHelper->getStatusPending($storeId);
-                if ($status != $order->getStatus()) {
+                if ($type == 'webhook') {
                     $message = __(
                         'The status of your order with ID %1 is %2. The order should be updated automatically 
                         when the status changes',
                         $transactionId,
                         $transaction->status
                     );
-                    $status = $this->spryngHelper->getStatusPending($storeId);
-                    $order->addStatusToHistory($status, $message, false)->save();
+
+                    if ($statusPending != $order->getStatus()) {
+                        $statusPending = $order->getStatus();
+                    }
+
+                    $order->addStatusToHistory($statusPending, $message, false)->save();
                 }
 
-                $msg = ['success' => true, 'status' => $transaction->status, 'order_id' => $orderId, 'type' => $type];
-                $this->spryngHelper->addTolog('success', $msg);
+                $msg = [
+                    'success'  => true,
+                    'status'   => $transaction->status,
+                    'order_id' => $orderId,
+                    'type'     => $type
+                ];
+
                 break;
         }
+
+        $this->spryngHelper->addTolog('success', $msg);
 
         return $msg;
     }
@@ -373,7 +403,7 @@ class Spryng extends AbstractMethod
     }
 
     /**
-     * @param $order
+     * @param \Magento\Sales\Model\Order $order
      *
      * @return bool
      */
@@ -463,15 +493,18 @@ class Spryng extends AbstractMethod
      */
     public function getPClasses($code, $storeId)
     {
-        $pCalasses = [];
+        $classes = [];
+
+        $apiKey = $this->spryngHelper->getApiKey($storeId);
+        $account = $this->spryngHelper->getAccount($code, $storeId);
+        if(!$spryngApi = $this->loadSpryngApi($apiKey, $storeId)) {
+           return $classes;
+        }
 
         try {
-            $apiKey = $this->spryngHelper->getApiKey($storeId);
-            $account = $this->spryngHelper->getAccount($code, $storeId);
-            $spryngApi = $this->loadSpryngApi($apiKey, $storeId);
             $pclasses = $spryngApi->Klarna->getPClasses($account);
             foreach ($pclasses as $pclass) {
-                $pCalasses = [
+                $classes = [
                     'id'   => $pclass->_id,
                     'name' => $pclass->description . ' - (' . ($pclass->interest_rate / 100) . '% interest)'
                 ];
@@ -480,7 +513,7 @@ class Spryng extends AbstractMethod
             $this->spryngHelper->addTolog('error', 'Function: getPClasses: ' . $e->getMessage());
         }
 
-        return $pCalasses;
+        return $classes;
     }
 
     /**
@@ -498,8 +531,11 @@ class Spryng extends AbstractMethod
             return ['-1' => __('Please provide a valid API Key first.')];
         }
 
+        if (!$spryngApi = $this->loadSpryngApi($apiKey, $storeId)) {
+            return ['-1' => __('Could not load Spryng API.')];
+        }
+
         try {
-            $spryngApi = $this->loadSpryngApi($apiKey, $storeId);
             $apiOrganisations = $spryngApi->organisation->getAll();
         } catch (\Exception $e) {
             $this->spryngHelper->addTolog('error', $e->getMessage());
@@ -507,7 +543,7 @@ class Spryng extends AbstractMethod
         }
 
         foreach ($apiOrganisations as $apiOrganisation) {
-            $organisations[$apiOrganisation->_id] = __($apiOrganisation->name);
+            $organisations[$apiOrganisation->_id] = $apiOrganisation->name;
         }
 
         return $organisations;
@@ -528,8 +564,11 @@ class Spryng extends AbstractMethod
             return ['-1' => __('Please provide a valid API Key first.')];
         }
 
+        if (!$spryngApi = $this->loadSpryngApi($apiKey, $storeId)) {
+            return ['-1' => __('Could not load Spryng API.')];
+        }
+
         try {
-            $spryngApi = $this->loadSpryngApi($apiKey, $storeId);
             $apiAccounts = $spryngApi->account->getAll();
         } catch (\Exception $e) {
             $this->spryngHelper->addTolog('error', 'Function: getAccounts: ' . $e->getMessage());
@@ -537,17 +576,17 @@ class Spryng extends AbstractMethod
         }
 
         foreach ($apiAccounts as $apiAccount) {
-            $accounts[$apiAccount->_id] = __($apiAccount->name);
+            $accounts[$apiAccount->_id] = $apiAccount->name;
         }
 
         return $accounts;
     }
 
     /**
-     * @param        $order
-     * @param        $spryngApi
-     * @param        $prefix
-     * @param string $dateOfBirth
+     * @param \Magento\Sales\Model\Order $order
+     * @param                            $spryngApi
+     * @param                            $prefix
+     * @param string                     $dateOfBirth
      *
      * @return string
      */
@@ -577,10 +616,10 @@ class Spryng extends AbstractMethod
     }
 
     /**
-     * @param $order
-     * @param $spryngApi
-     * @param $prefix
-     * @param $dateOfBirth
+     * @param \Magento\Sales\Model\Order $order
+     * @param                            $spryngApi
+     * @param                            $prefix
+     * @param                            $dateOfBirth
      *
      * @return string
      */
@@ -637,11 +676,11 @@ class Spryng extends AbstractMethod
     }
 
     /**
-     * @param $order
-     * @param $spryngApi
-     * @param $spryngCustomerId
-     * @param $prefix
-     * @param $dateOfBirth
+     * @param \Magento\Sales\Model\Order $order
+     * @param                            $spryngApi
+     * @param                            $spryngCustomerId
+     * @param                            $prefix
+     * @param                            $dateOfBirth
      *
      * @return string
      */

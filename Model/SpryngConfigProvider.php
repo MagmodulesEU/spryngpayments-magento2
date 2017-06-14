@@ -188,8 +188,8 @@ class SpryngConfigProvider implements ConfigProviderInterface
     public function getCcYears()
     {
         $data = [];
-        $months = $this->paymentConfig->getYears();
-        foreach ($months as $k => $v) {
+        $years = $this->paymentConfig->getYears();
+        foreach ($years as $k => $v) {
             $data[] = ['id' => substr($k, -2), 'name' => $v];
         }
         return $data;
