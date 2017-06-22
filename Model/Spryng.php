@@ -222,6 +222,8 @@ class Spryng extends AbstractMethod
         $statusPending = $this->spryngHelper->getStatusPending($storeId);
 
         switch ($transaction->status) {
+
+            case 'SETTLEMENT_REQUESTED':
             case 'SETTLEMENT_COMPLETED':
                 $amount = $order->getBaseGrandTotal();
                 $payment = $order->getPayment();
@@ -246,31 +248,6 @@ class Spryng extends AbstractMethod
                     if ($invoice && ($order->getStatus() != $statusProcessing)) {
                         $order->setStatus($statusProcessing)->save();
                     }
-                }
-
-                $msg = [
-                    'success'  => true,
-                    'status'   => $transaction->status,
-                    'order_id' => $orderId,
-                    'type'     => $type
-                ];
-
-                break;
-
-            case 'SETTLEMENT_REQUESTED':
-                if ($type == 'webhook') {
-                    $message = __(
-                        'Transaction with ID %1 is requested. Your order with ID %2 should be updated 
-                        automatically when the status on the payment is updated.',
-                        $transactionId,
-                        $order->getIncrementId()
-                    );
-
-                    if ($statusPending != $order->getStatus()) {
-                        $statusPending = $order->getStatus();
-                    }
-
-                    $order->addStatusToHistory($statusPending, $message, false)->save();
                 }
 
                 $msg = [
