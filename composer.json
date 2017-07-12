@@ -2,7 +2,7 @@
   "name": "spryngpayments/magento2-extension",
   "description": "Spryng Payment Module for Magento 2",
   "minimum-stability": "dev",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "require": {
     "spryng/spryng-payments-api-php": "~1.2",
     "giggsey/libphonenumber-for-php": "^8.1"
