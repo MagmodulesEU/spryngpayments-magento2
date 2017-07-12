@@ -13,7 +13,7 @@ class Ideal extends Spryng
 
     protected $_code = 'spryng_methods_ideal';
     protected $_supportedCurrencyCodes = ['EUR'];
-    protected $_canRefund = false;
+    protected $_canRefund = true;
 
     /**
      * @param \Magento\Sales\Model\Order $order
@@ -72,6 +72,39 @@ class Ideal extends Spryng
             return false;
         }
         return true;
+    }
+
+    /**
+     * @param \Magento\Payment\Model\InfoInterface $payment
+     * @param float                                $amount
+     *
+     * @return $this|array
+     */
+    public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
+    {
+        $order = $payment->getOrder();
+        $storeId = $order->getStoreId();
+        $transactionId = $order->getSpryngTransactionId();
+        if (empty($transactionId)) {
+            $msg = ['error' => true, 'msg' => __('Transaction ID not found')];
+            $this->spryngHelper->addTolog('error', $msg);
+            return $msg;
+        }
+        $apiKey = $this->spryngHelper->getApiKey($storeId);
+        if (empty($apiKey)) {
+            $msg = ['error' => true, 'msg' => __('Api key not found')];
+            $this->spryngHelper->addTolog('error', $msg);
+            return $msg;
+        }
+
+        $spryngApi = $this->loadSpryngApi($apiKey, $storeId);
+        try {
+            $amount = $amount * 100;
+            $spryngApi->transaction->refund($transactionId, $amount, '');
+        } catch (\Exception $e) {
+            $this->spryngHelper->addTolog('error', $e->getMessage());
+        }
+        return $this;
     }
 
     /**
