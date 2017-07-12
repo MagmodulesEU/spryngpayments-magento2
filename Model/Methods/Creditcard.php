@@ -32,15 +32,16 @@ class Creditcard extends Spryng
         }
 
         $paymentData = [
-            'account'            => $accountId,
-            'amount'             => ($order->getBaseGrandTotal() * 100),
-            'card'               => $cardToken,
-            'dynamic_descriptor' => $this->spryngHelper->getDynamicDescriptor($incrementId, $storeId),
-            'payment_product'    => 'card',
-            'customer_ip'        => $order->getRemoteIp(),
-            'user_agent'         => $this->spryngHelper->getUserAgent(),
-            'capture'            => true,
-            'merchant_reference' => $this->spryngHelper->getMerchantReference($storeId),
+            'account'                    => $accountId,
+            'amount'                     => ($order->getBaseGrandTotal() * 100),
+            'card'                       => $cardToken,
+            'dynamic_descriptor'         => $this->spryngHelper->getDynamicDescriptor($incrementId, $storeId),
+            'payment_product'            => 'card',
+            'customer_ip'                => $order->getRemoteIp(),
+            'user_agent'                 => $this->spryngHelper->getUserAgent(),
+            'capture'                    => true,
+            'merchant_reference'         => $this->spryngHelper->getMerchantReference($storeId),
+            'webhook_transaction_update' => $this->spryngHelper->getWebhookUrl(),
         ];
 
         $this->spryngHelper->addTolog('request', $paymentData);
@@ -79,7 +80,7 @@ class Creditcard extends Spryng
 
         $spryngApi = $this->loadSpryngApi($apiKey, $storeId);
         try {
-            $amount = (int)$amount * 100;
+            $amount = $amount * 100;
             $spryngApi->transaction->refund($transactionId, $amount, '');
         } catch (\Exception $e) {
             $this->spryngHelper->addTolog('error', $e->getMessage());
