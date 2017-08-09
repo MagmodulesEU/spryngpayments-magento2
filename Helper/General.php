@@ -215,8 +215,12 @@ class General extends AbstractHelper
      */
     public function getDynamicDescriptor($incrementId, $storeId)
     {
-        $descriptor = $this->getStoreConfig(SELF::XML_PATH_DYNAMIC_DESCRIPTOR, $storeId);
-        return str_replace('%id%', $incrementId, $descriptor);
+        $descriptor = $this->getStoreConfig(self::XML_PATH_DYNAMIC_DESCRIPTOR, $storeId);
+        if (!empty($descriptor)) {
+            return str_replace('%id%', $incrementId, $descriptor);
+        } else {
+            return __('Order %1', $incrementId);
+        }
     }
 
     /**
@@ -226,12 +230,12 @@ class General extends AbstractHelper
      */
     public function getMerchantReference($storeId)
     {
-        $merchantReference = $this->getStoreConfig(SELF::XML_PATH_MERCHANT_REFERENCE, $storeId);
+        $merchantReference = $this->getStoreConfig(self::XML_PATH_MERCHANT_REFERENCE, $storeId);
         if (empty($merchantReference)) {
             $baseUrl = parse_url($this->storeManager->getStore($storeId)->getBaseUrl());
             return 'Magento Plugin installed at ' . $baseUrl['host'];
         }
-        return $this->getStoreConfig(SELF::XML_PATH_MERCHANT_REFERENCE, $storeId);
+        return $this->getStoreConfig(self::XML_PATH_MERCHANT_REFERENCE, $storeId);
     }
 
     /**
